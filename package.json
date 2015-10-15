@@ -1,0 +1,24 @@
+{
+  "name": "codemirror-kage",
+  "description": "New reflux application",
+  "version": "0.0.1",
+  "main": "index.html",
+  "inject-js-start":"nwmain.js",
+  "single-instance":true,
+  "window": {
+    "toolbar": true,
+    "width": 1060,
+    "height": 700
+  },
+  "scripts" : {
+  },
+  "dependencies": {
+    "ksana-codemirror": "git+https://github.com/ksanaforge/ksana-codemirror.git",
+    "codemirror": "*"
+  },  
+ "repository": 
+  {
+      "type": "git", 
+      "url": "https://github.com/ksanaforge/codemirror-kage.git"
+  }  
+}
