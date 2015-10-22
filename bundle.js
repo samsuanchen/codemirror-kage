@@ -10263,21 +10263,97 @@ var Controls=React.createClass({displayName: "Controls",
 module.exports=Controls;
 },{"./actions":"C:\\ksana2015\\codemirror-kage\\src\\actions.js","react":"react"}],"C:\\ksana2015\\codemirror-kage\\src\\main.jsx":[function(require,module,exports){
 var React=require("react");
+var ReactDOM=require("react-dom");
 var Controls=require("./controls.jsx");
 var CodeMirror=require("ksana-codemirror").Component;
 
+var ire=require("ksana-ire");
+var IREPreview=ire.IREPreview;
+var IREView=ire.IREView;
+var IREMARKER="⿿";
 var Maincomponent = React.createClass({displayName: "Maincomponent",
 	getInitialState:function() {
-		return {value:"abc"}
-	}
-	,onCursorActivity: function() {
+		return {value:"abc\nabc⿿婆女卡哈哈⿿婆女卡哈哈\nabc⿿婆女卡哈哈⿿婆女卡哈哈\nabc",inIRE:false,IRELine:-1}
+	},
+	componentDidMount:function() {
+		this.doc=this.refs.cm.getCodeMirror().getDoc();
+		this.IRE2Image(this.doc);
+		this.doc.markText({line:0,ch:0},{line:0,ch:3},{atomic:true,readOnly:true,className:"hl"})
 
+	}	
+	,textUntilEOL : function(cm) {
+
+	}
+	,onIREViewClick:function(e){
+		var domnode=e.target;
+		while (domnode && !domnode.dataset) {
+			domnode=domnode.parentElement;
+		}
+		if (!domnode) return;
+		var cur=domnode.dataset.cur;
+		var pos=cur.split(",");
+		var doc=this.refs.cm.getCodeMirror().getDoc();
+		var at={line:parseInt(pos[0]),ch:parseInt(pos[1])+1};
+		var mrks=doc.findMarksAt(at);
+		if (mrks.length) {
+			mrks[0].clear();
+			doc.setCursor(at);
+			doc.getEditor().focus();
+		}
+	}
+	,markLine:function(doc,i){
+		var line=doc.getLine(i);
+		var reg=new RegExp(IREMARKER,"g");
+		line.replace( reg,function(m,idx){
+			var text=line.substr(idx+1);
+			var ch=text.indexOf(IREMARKER); 
+			if (ch>-1) text=text.substr(0,ch);
+			var text=ire.getIRE(text);
+			var element=document.createElement("SPAN");
+			var height=doc.getEditor().defaultTextHeight()-8;
+			console.log(height)
+			//element.innerHTML="hi"
+			ReactDOM.render(React.createElement(IREView, {height: height, cur: [i,idx], onClick: this.onIREViewClick}),element);
+			doc.markText({line:i,ch:idx},{line:i,ch:idx+text.length+1},{replacedWith:element,clearOnEnter:true});
+		}.bind(this));
+	}
+	,IRE2Image:function(doc) {
+		for (var i=0;i<doc.lineCount();i++) {
+			this.markLine(doc,i);
+		}
+	}
+	,cursorInIRE:function(pos) {
+		var line=this.doc.getLine(pos.line);
+		var i=line.lastIndexOf(IREMARKER,pos.ch);
+		if (i==-1)return false;
+
+		var text=ire.getIRE(line.substr(i+1));
+		if (i+1+text.length>=pos.ch){
+			return [i,i+1+text.length];
+		}
+		return ;
+	}
+	,onCursorActivity: function(cm) {
+		var pos=cm.getCursor();
+		var inIRE=this.cursorInIRE(pos);
+		if (this.state.inIRE && !inIRE) {
+			if (this.state.IRELine>-1) this.markLine(this.doc,this.state.IRELine);
+			var mrk=this.doc.findMarksAt({line:pos.line,ch:this.state.inIRE[0]});
+			if (mrk) mrk.map(function(m){
+				if (m.className==="ire")m.clear();
+			});
+			this.setState({inIRE:null,IRELine:-1});
+		}
+		if (inIRE) {
+			this.setState({IRELine:pos.line,inIRE:inIRE});
+			this.doc.markText({line:pos.line,ch:inIRE[0]},{line:pos.line,ch:inIRE[1]},{className:"ire"});
+		}
 	}
 	,onChange :function() {
 
 	}
 	,componentDidUpdate: function() {
-		this.refs.cm.setSize("100%",1000); 
+		if (this.refs.cm) this.refs.cm.codeMirror.setSize("100%",1000); 
 	}
   ,render: function() {
     return React.createElement("div", null, 
@@ -10288,7 +10364,57 @@ var Maincomponent = React.createClass({displayName: "Maincomponent",
   }
 });
 module.exports=Maincomponent;
-},{"./controls.jsx":"C:\\ksana2015\\codemirror-kage\\src\\controls.jsx","ksana-codemirror":"C:\\ksana2015\\codemirror-kage\\node_modules\\ksana-codemirror\\src\\index.js","react":"react"}],"C:\\ksana2015\\node_modules\\ksana2015-webruntime\\downloader.js":[function(require,module,exports){
+},{"./controls.jsx":"C:\\ksana2015\\codemirror-kage\\src\\controls.jsx","ksana-codemirror":"C:\\ksana2015\\codemirror-kage\\node_modules\\ksana-codemirror\\src\\index.js","ksana-ire":"C:\\ksana2015\\node_modules\\ksana-ire\\index.js","react":"react","react-dom":"react-dom"}],"C:\\ksana2015\\node_modules\\ksana-ire\\index.js":[function(require,module,exports){
+var getIRE=function(s) {
+	if (s.substr(0,3)=="婆女卡") return "婆女卡";
+	return s[0];
+}
+module.exports={getIRE:getIRE,IREPreview:require("./src/irepreview")
+,IREView:require("./src/ireview")};
+},{"./src/irepreview":"C:\\ksana2015\\node_modules\\ksana-ire\\src\\irepreview.js","./src/ireview":"C:\\ksana2015\\node_modules\\ksana-ire\\src\\ireview.js"}],"C:\\ksana2015\\node_modules\\ksana-ire\\src\\irepreview.js":[function(require,module,exports){
+var React=require("react");
+var E=React.createElement;
+
+var IREPreview=React.createClass({
+	render:function() {
+		return E("span",null,"hello")
+	}
+})
+module.exports=IREPreview;
+},{"react":"react"}],"C:\\ksana2015\\node_modules\\ksana-ire\\src\\ireview.js":[function(require,module,exports){
+var React=require("react");
+var E=React.createElement;
+
+var from={left:0,top:0};
+var to={left:10,top:10};
+var paths=function(height){
+	to.left=height;
+	to.top=height;
+	return [
+	{key:1,stroke:"black",strokeOpacity:0.25,strokeWidth:2,stroke:"green"  //line
+				,d:"M"+(from.left)+" "+(from.top)+"L"+(to.left)+" "+(to.top)+"Z"}
+
+	,{key:2,stroke:"black",strokeOpacity:0.25,strokeWidth:2,stroke:"green"  //line
+				,d:"M"+(from.left)+" "+(to.top)+"L"+(to.left)+" "+(from.top)+"Z"}				
+	]
+};
+
+var IREView=React.createClass({
+	getInitialState:function() {
+
+		return {paths:paths(this.props.height)};
+	}
+  ,renderPath:function (path,idx) {
+    return E(path.cmd||"path",path);
+  }
+	,render:function() {
+		return E("span",{"data-cur":this.props.cur,onClick:this.props.onClick},
+						E("svg",{xmlns:'http://www.w3.org/2000/svg',width:this.props.height,height:this.props.height}
+			,this.state.paths.map(this.renderPath)));
+	}
+})
+module.exports=IREView;
+},{"react":"react"}],"C:\\ksana2015\\node_modules\\ksana2015-webruntime\\downloader.js":[function(require,module,exports){
 
 var userCancel=false;
 var files=[];
