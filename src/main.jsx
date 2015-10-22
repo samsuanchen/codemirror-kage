@@ -9,7 +9,8 @@ var IREView=ire.IREView;
 var IREMARKER="⿿";
 var Maincomponent = React.createClass({
 	getInitialState:function() {
-		return {value:"abc\nabc⿿婆女卡哈哈⿿婆女卡哈哈\nabc⿿婆女卡哈哈⿿婆女卡哈哈\nabc",inIRE:false,IRELine:-1}
+		return {value:"abc\nabc⿿婆女卡哈哈⿿婆女卡哈哈\nabc⿿婆女卡哈哈⿿婆女卡哈哈\nabc",
+		inIRE:false,IRELine:-1,coord:{}}
 	},
 	componentDidMount:function() {
 		this.doc=this.refs.cm.getCodeMirror().getDoc();
@@ -78,10 +79,13 @@ var Maincomponent = React.createClass({
 			if (mrk) mrk.map(function(m){
 				if (m.className==="ire")m.clear();
 			});
-			this.setState({inIRE:null,IRELine:-1});
+			this.setState({inIRE:null,IRELine:-1,ire:null});
 		}
 		if (inIRE) {
-			this.setState({IRELine:pos.line,inIRE:inIRE});
+			var ire=this.doc.getRange({line:pos.line,ch:inIRE[0]+1},{line:pos.line,ch:inIRE[1]});
+			var coord=this.doc.getEditor().charCoords({line:pos.line,ch:inIRE[0]});
+			coord.top+=this.doc.getEditor().defaultTextHeight();
+			this.setState({IRELine:pos.line,inIRE:inIRE,ire:ire,coord:coord});
 			this.doc.markText({line:pos.line,ch:inIRE[0]},{line:pos.line,ch:inIRE[1]},{className:"ire"});
 		}
 	}
@@ -93,6 +97,7 @@ var Maincomponent = React.createClass({
 	}
   ,render: function() {
     return <div>
+			<IREPreview ire={this.state.ire} coord={this.state.coord}/>
 			<CodeMirror ref="cm" value={this.state.value}
 				onCursorActivity={this.onCursorActivity}
 				onChange={this.onChange}/>

@@ -1,4 +1,5 @@
 /* application css */
+ body{ margin: 0; padding: 0 }
 #main {font-size:200%;}
 .hl {color:red;}
 .ire {text-decoration: underline}
