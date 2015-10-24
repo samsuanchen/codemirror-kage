@@ -71,23 +71,28 @@ var Maincomponent = React.createClass({
 		return ;
 	}
 	,onCursorActivity: function(cm) {
-		var pos=cm.getCursor();
-		var inIRE=this.cursorInIRE(pos);
-		if (this.state.inIRE && !inIRE) {
-			if (this.state.IRELine>-1) this.markLine(this.doc,this.state.IRELine);
-			var mrk=this.doc.findMarksAt({line:pos.line,ch:this.state.inIRE[0]});
-			if (mrk) mrk.map(function(m){
-				if (m.className==="ire")m.clear();
-			});
-			this.setState({inIRE:null,IRELine:-1,ire:null});
-		}
-		if (inIRE) {
-			var ire=this.doc.getRange({line:pos.line,ch:inIRE[0]+1},{line:pos.line,ch:inIRE[1]});
-			var coord=this.doc.getEditor().charCoords({line:pos.line,ch:inIRE[0]});
-			coord.top+=this.doc.getEditor().defaultTextHeight();
-			this.setState({IRELine:pos.line,inIRE:inIRE,ire:ire,coord:coord});
-			this.doc.markText({line:pos.line,ch:inIRE[0]},{line:pos.line,ch:inIRE[1]},{className:"ire"});
-		}
+		clearTimeout(this.timer1);
+		this.timer1=setTimeout(function(){
+			var pos=cm.getCursor();
+			var inIRE=this.cursorInIRE(pos);
+			if ( (( this.state.IRELine!==pos.line) ||
+				   (JSON.stringify(this.state.inIRE)!=JSON.stringify(inIRE))) 
+			&& this.state.inIRE) {
+				if (this.state.IRELine>-1) this.markLine(this.doc,this.state.IRELine);
+				var mrk=this.doc.findMarksAt({line:pos.line,ch:this.state.inIRE[0]});
+				if (mrk) mrk.map(function(m){
+					if (m.className==="ire")m.clear();
+				});
+				this.setState({inIRE:null,IRELine:-1,ire:null});
+			}
+			if (inIRE) {
+				var ire=this.doc.getRange({line:pos.line,ch:inIRE[0]+1},{line:pos.line,ch:inIRE[1]});
+				var coord=this.doc.getEditor().charCoords({line:pos.line,ch:inIRE[0]});
+				coord.top+=this.doc.getEditor().defaultTextHeight();
+				this.setState({IRELine:pos.line,inIRE:inIRE,ire:ire,coord:coord});
+				this.doc.markText({line:pos.line,ch:inIRE[0]},{line:pos.line,ch:inIRE[1]},{className:"ire"});
+			}			
+		}.bind(this),50);
 	}
 	,onChange :function() {
 
