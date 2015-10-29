@@ -23,8 +23,8 @@ var Maincomponent = React.createClass({
 	}
 	,onIREViewClick:function(e){
 		var domnode=e.target;
-		while (domnode && !domnode.dataset) {
-			domnode=domnode.parentElement;
+		while (domnode && (!domnode.dataset|| !domnode.dataset.cur)){
+			domnode=domnode.parentElement; // 找到 含 dataset 的 dom node
 		}
 		if (!domnode) return;
 		var cur=domnode.dataset.cur;
@@ -48,9 +48,9 @@ var Maincomponent = React.createClass({
 			var text=ire.getIRE(text);
 			var element=document.createElement("SPAN");
 			var height=doc.getEditor().defaultTextHeight()-8;
-			console.log(height)
+		//	console.log(height)
 			//element.innerHTML="hi"
-			ReactDOM.render(<IREView height={height} cur={[i,idx]} onClick={this.onIREViewClick}/>,element);
+			ReactDOM.render(<IREView height={height} cur={[i,idx]} onClick={this.onIREViewClick} ire={text}/>,element);
 			doc.markText({line:i,ch:idx},{line:i,ch:idx+text.length+1},{replacedWith:element,clearOnEnter:true});
 		}.bind(this));
 	}
@@ -95,18 +95,23 @@ var Maincomponent = React.createClass({
 		}.bind(this),50);
 	}
 	,onChange :function() {
-
+		var t=event.currentTarget, v=t.value;
+		console.log(v);
+		setTimeout(function(){
+			console.log(t.value);
+		},0)
 	}
 	,componentDidUpdate: function() {
-		if (this.refs.cm) this.refs.cm.codeMirror.setSize("100%",1000); 
+		if (this.refs.cm)
+			this.refs.cm.codeMirror.setSize("100%",1000); 
 	}
-  ,render: function() {
-    return <div>
-			<IREPreview ire={this.state.ire} coord={this.state.coord}/>
-			<CodeMirror ref="cm" value={this.state.value}
-				onCursorActivity={this.onCursorActivity}
-				onChange={this.onChange}/>
-    </div>;
-  }
+    ,render: function() {
+        return <div>
+			       <IREPreview ire={this.state.ire} coord={this.state.coord}/>
+			       <CodeMirror ref="cm" value={this.state.value}
+				      onCursorActivity={this.onCursorActivity}
+				      onChange={this.onChange}/>
+              </div>;
+    }
 });
 module.exports=Maincomponent;
