@@ -9,7 +9,7 @@ var IREView=ire.IREView;
 var IREMARKER="⿿";
 var Maincomponent = React.createClass({
 	getInitialState:function() {
-		return {value:"abc\nabc⿿婆女卡哈哈⿿婆女卡哈哈\nabc⿿婆女卡哈哈⿿婆女卡哈哈\nabc",
+		return {value:"abc\nabc⿿婆女卡哈哈⿿萌日目哈哈\nabc⿿𩀨從䞃致招哈哈⿿邏羅寶貝𩀨從䞃致招哈哈\nabc",
 		inIRE:false,IRELine:-1,coord:{}}
 	},
 	componentDidMount:function() {
